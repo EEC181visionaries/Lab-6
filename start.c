@@ -7,17 +7,34 @@ int main()
 {
   volatile int * reg = (int *) 0xFF200000;
   
-  int start_flag = 0, stop_flag = 0;
+  int on_flag = 0;
   char input[INPUT_LENGTH];
   
   while(1)
   {
-    printf('Please enter on, off, or check to change or view the status of the camera: ');
+    printf('Please enter "on", "off", or "check" to change or view the status of the camera: ');
     fgets(input, INPUT_LENGTH, stdin);
     
-    if (strcmp(input, 'on')||strcmp(input, 'on')||strcmp(input, 'on'))
+    if (strcmp(input, 'on')||strcmp(input, 'On')||strcmp(input, 'ON'))
     {
-      
-    }
+      on_flag = 1;
+      *(reg) = 1;  // on?
+      printf('Camera Status: On\n');
+    } // if on
+    else if (strcmp(input, 'off')||strcmp(input, 'Off')||strcmp(input, 'OFF'))
+    {
+      on_flag = 0;
+      *(reg) = 0;  // off?
+       printf('Camera Status: Off\n');
+    } // if off
+    else if (strcmp(input, 'check')||strcmp(input, 'Check')||strcmp(input, 'CHECK'))
+    {
+      if (on_flag)
+         printf('Camera Status: On\n');
+      else
+         printf('Camera Status: Off\n')
+    } // if check
+    else
+      printf('Invalid input.\n')
   }
 }
