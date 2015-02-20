@@ -12,29 +12,30 @@ int main()
   
   while(1)
   {
-    printf('Please enter "on", "off", or "check" to change or view the status of the camera: ');
+    printf("Please enter \"on\", \"off\", or \"check\" to change or view the status of the camera: ");
     fgets(input, INPUT_LENGTH, stdin);
     
-    if (strcmp(input, 'on')||strcmp(input, 'On')||strcmp(input, 'ON'))
+    if (strcmp(input, "on")||strcmp(input, "On")||strcmp(input, "ON"))
     {
       on_flag = 1;
-      *(reg) = 1;  // on?
-      printf('Camera Status: On\n');
+      //*(reg) = 1;  // on?
+      printf("Camera Status: On\n");
     } // if on
-    else if (strcmp(input, 'off')||strcmp(input, 'Off')||strcmp(input, 'OFF'))
+    else if (strcmp(input, "off")||strcmp(input, "Off")||strcmp(input, "OFF"))
     {
       on_flag = 0;
-      *(reg) = 0;  // off?
-       printf('Camera Status: Off\n');
+      //*(reg) = 0;  // off?
+       printf("Camera Status: Off\n");
     } // if off
-    else if (strcmp(input, 'check')||strcmp(input, 'Check')||strcmp(input, 'CHECK'))
+    else if (strcmp(input, "check")||strcmp(input, "Check")||strcmp(input, "CHECK"))
     {
       if (on_flag)
-         printf('Camera Status: On\n');
+         printf("Camera Status: On\n");
       else
-         printf('Camera Status: Off\n')
+         printf("Camera Status: Off\n");
     } // if check
     else
-      printf('Invalid input.\n')
+      printf("Invalid input.\n");
   }
+  return 0;
 }
