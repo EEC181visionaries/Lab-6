@@ -15,19 +15,19 @@ int main()
     printf("Please enter \"on\", \"off\", or \"check\" to change or view the status of the camera: ");
     fgets(input, INPUT_LENGTH, stdin);
     
-    if (strcmp(input, "on")||strcmp(input, "On")||strcmp(input, "ON"))
+    if (!(strcmp(input, "on\n"))||!(strcmp(input, "On\n"))||!(strcmp(input, "ON\n")))
     {
       on_flag = 1;
       //*(reg) = 1;  // on?
       printf("Camera Status: On\n");
     } // if on
-    else if (strcmp(input, "off")||strcmp(input, "Off")||strcmp(input, "OFF"))
+    else if (!(strcmp(input, "off\n"))||!(strcmp(input, "Off\n"))||!(strcmp(input, "OFF\n")))
     {
       on_flag = 0;
       //*(reg) = 0;  // off?
        printf("Camera Status: Off\n");
     } // if off
-    else if (strcmp(input, "check")||strcmp(input, "Check")||strcmp(input, "CHECK"))
+    else if (!(strcmp(input, "check\n"))||!(strcmp(input, "Check\n"))||!(strcmp(input, "CHECK\n")))
     {
       if (on_flag)
          printf("Camera Status: On\n");
