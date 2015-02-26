@@ -1,4 +1,4 @@
-// color2gray.c
+// color2gray1.c
 // converts rgb to grayscale using equation...
 // gray = .21 * red + .72 * green + .07 * blue;
 
