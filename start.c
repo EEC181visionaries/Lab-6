@@ -18,13 +18,13 @@ int main()
     if (!(strcmp(input, "on\n"))||!(strcmp(input, "On\n"))||!(strcmp(input, "ON\n")))
     {
       on_flag = 1;
-      //*(reg) = 1;  // on?
+      *(reg) = 1;  // on
       printf("Camera Status: On\n");
     } // if on
     else if (!(strcmp(input, "off\n"))||!(strcmp(input, "Off\n"))||!(strcmp(input, "OFF\n")))
     {
       on_flag = 0;
-      //*(reg) = 0;  // off?
+      *(reg) = 0;  // off
        printf("Camera Status: Off\n");
     } // if off
     else if (!(strcmp(input, "check\n"))||!(strcmp(input, "Check\n"))||!(strcmp(input, "CHECK\n")))
