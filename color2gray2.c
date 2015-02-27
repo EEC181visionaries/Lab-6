@@ -1,3 +1,4 @@
+// Doesn't Work!!!!!
 // color2gray2.c
 // converts rgb to grayscale
 // continuously with prompt to rgb or gray
