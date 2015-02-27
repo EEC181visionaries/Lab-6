@@ -2,6 +2,7 @@
 // color2gray2.c
 // converts rgb to grayscale
 // continuously with prompt to rgb or gray
+// http://stackoverflow.com/questions/13426575/how-to-make-a-c-program-stop-a-loop-from-any-user-input
 
 //#include <stdio.h>
 //#include <string.h>
