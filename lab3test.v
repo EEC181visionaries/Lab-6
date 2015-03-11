@@ -118,6 +118,11 @@ wire					stop_cam;
 wire					source_select;
 assign stop_cam = !start_cam;
 reg					custom_clock;
+reg 		[16:0]		gray;					// Converts VGA color to grayscale
+wire		[1:0]		controlled_clk;
+wire					HPS_CTRLING_CLK;
+assign controlled_clk[0] = VGA_CTRL_CLK;
+assign controlled_clk[1] = HPS_CTRLING_CLK;
 //=======================================================
 //  Structural coding
 //=======================================================
@@ -137,16 +142,17 @@ assign	CCD_DATA[11]=	GPIO_1[1];
 assign	GPIO_1[16]	=	CCD_MCLK;
 assign	CCD_FVAL	=	GPIO_1[22];
 assign	CCD_LVAL	=	GPIO_1[21]; 
-assign	CCD_PIXCLK	=	GPIO_1[0]; //PixCLK
+//assign	CCD_PIXCLK	=	GPIO_1[0]; //PixCLK
+assign	CCD_PIXCLK	= CCD_MCLK;
 assign	GPIO_1[19]	=	1'b1;  // tRIGGER
 assign	GPIO_1[17]	=	DLY_RST_1;
 
 assign	VGA_CLK		=	VGA_CTRL_CLK;
 assign	hps_clk_in	=	VGA_CTRL_CLK;
 
-always@(posedge CLOCK_50)	rClk	<=	rClk+1;
+//always@(posedge CLOCK_50)	rClk	<=	rClk+1;
 
-assign CCD_MCLK = rClk[0]; // 25MHZ
+//assign CCD_MCLK = rClk[0]; // 25MHZ
 
 assign	LEDR[9:3]		=	Y_Cont;
 assign	LEDR[0:0]		=	sdram_read;
@@ -165,10 +171,22 @@ begin
 	rCCD_FVAL	<=	CCD_FVAL;
 end
 
+reg		[31:0]	clock_test;
 always@(posedge VGA_CTRL_CLK)
 begin
 	Read <= sdram_read;
+	clock_test <= clock_test + 1;
 end
+
+// Converts RAW2RGB's data from color to grayscale
+// Then stores into Sdram_Control_4Port 
+// gray = (27*red + 91*green + 9*blue)/127
+always@(posedge VGA_CTRL_CLK)
+begin
+	gray = sCCD_R*27 + sCCD_G*91 + sCCD_B*9;
+end
+
+
 
 
 VGA_Controller		u1	(	//	Host Side
@@ -187,7 +205,7 @@ VGA_Controller		u1	(	//	Host Side
 							.oVGA_SYNC(VGA_SYNC_N),
 							.oVGA_BLANK(VGA_BLANK_N),
 							//	Control Signal
-							.iCLK(VGA_CTRL_CLK),
+							.iCLK(controlled_clk[HPS_CTRLING_CLK]),
 							.iRST_N(DLY_RST_2)
 							);
 
@@ -245,7 +263,7 @@ Sdram_Control_4Port	u7	(
 							.CLK(sdram_ctrl_clk),
 
 							//	FIFO Write Side 1
-							.WR1_DATA({1'b0,sCCD_G[11:7],sCCD_B[11:2]}),
+							.WR1_DATA({1'b0,gray[16:12],gray[16:7]}),
 							.WR1(sCCD_DVAL),
 							.WR1_ADDR(0),					// Memory start for one section of the memory
 							.WR1_MAX_ADDR(640*480),
@@ -255,7 +273,7 @@ Sdram_Control_4Port	u7	(
 							// CCD data is written on the falling edge of the CCD_PIXCLK
 
 							//	FIFO Write Side 2
-							.WR2_DATA(	{1'b0,sCCD_G[6:2],sCCD_R[11:2]}),
+							.WR2_DATA(	{1'b0,gray[11:7],gray[16:7]}),
 							.WR2(sCCD_DVAL),
 							.WR2_ADDR(22'h100000),		// Memory start for the second section of memory - why can we not write data into one memory block?
 							.WR2_MAX_ADDR(22'h100000+640*480),
@@ -263,24 +281,23 @@ Sdram_Control_4Port	u7	(
 							.WR2_LOAD(!DLY_RST_0),
 							.WR2_CLK(~CCD_PIXCLK),
 
-
 							//	FIFO Read Side 1
 						   .RD1_DATA(Read_DATA1),
-				        	.RD1(Read),
+				        	.RD1(vga_read),
 				        	.RD1_ADDR(0),
 							.RD1_MAX_ADDR(640*480),
 							.RD1_LENGTH(256),
 							.RD1_LOAD(!DLY_RST_0),
-							.RD1_CLK(~VGA_CTRL_CLK),
+							.RD1_CLK(~controlled_clk[HPS_CTRLING_CLK]),
 							
 							//	FIFO Read Side 2
 						   .RD2_DATA(Read_DATA2),
-							.RD2(Read),
+							.RD2(vga_read),
 							.RD2_ADDR(22'h100000), // Memory start address
 							.RD2_MAX_ADDR(22'h100000+640*480),	// Allocate enough space for whole 640 x 480 display
 							.RD2_LENGTH(256),	// 8 bits long data storage
 				        	.RD2_LOAD(!DLY_RST_0),
-							.RD2_CLK(~VGA_CTRL_CLK),
+							.RD2_CLK(~controlled_clk[HPS_CTRLING_CLK]),
 							
 							//	SDRAM Side - Initialize the SDRAM - Can only initialize one per design
 							// Qsys does not allow the allocation of more than one SDRAM connected to the same DE1-SOC DRAM pin
@@ -311,7 +328,7 @@ I2C_CCD_Config 		u8	(
 	mysystem u0 (	  
         .sdram_clk_clk                (sdram_ctrl_clk),                //             sdram_clk.clk
         .dram_clk_clk                 (DRAM_CLK),                 //              dram_clk.clk
-        //.d5m_clk_clk                  (CCD_MCLK),                  //               d5m_clk.clk
+        .d5m_clk_clk                  (CCD_MCLK),                  //               d5m_clk.clk
         .vga_clk_clk                  (VGA_CTRL_CLK),                   //               vga_clk.clk
         .system_pll_0_refclk_clk      (CLOCK_50),      //   system_pll_0_refclk.clk
         .system_pll_0_reset_reset     (1'b0),      //    system_pll_0_reset.reset
@@ -339,8 +356,11 @@ I2C_CCD_Config 		u8	(
         .sdram_data2_export       (sdram_read_DATA2),        //         sdram_data2.export
 		  .vga_clk_in_export        (hps_clk_in),        //          vga_clk_in.export
         .cam_start_export         (start_cam),        //           cam_start.export
-		  .source_select_export		(source_select)
+		  .source_select_export		(source_select),
+		  .clock_tester_export		(clock_test),
+		  .hps_controlled_clk_export (HPS_CTRLING_CLK)  //  hps_controlled_clk.export
 		  );
+
 		  
 
 endmodule
